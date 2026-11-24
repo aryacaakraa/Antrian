@@ -27,7 +27,7 @@
 .toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#14243e;color:#fff;padding:12px 17px;border-radius:10px;font-size:12px;box-shadow:0 8px 25px #0002;transition:.25s;z-index:50}.toast.show{opacity:1;transform:translate(-50%,0)}
 /* Full-screen board */
 #board{position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at 50% -20%,#263e66 0%,#111f38 50%,#0b1629 100%);color:#fff;display:none;overflow:auto;padding:clamp(18px,3vw,42px)}
-#board.visible{display:block}.board-controls{max-width:1600px;margin:0 auto 16px;display:flex;justify-content:flex-end;align-items:center;gap:13px}.board-brand{display:flex;align-items:center;gap:12px}.board-title{font:800 clamp(19px,2.2vw,29px) Manrope;letter-spacing:1.4px}.board-kicker{font-size:10px;letter-spacing:2px;color:#9fb1cb;margin-top:4px}.board-live{font-size:11px;color:#9de7c7;display:flex;align-items:center;gap:8px}.board-live .dot{background:#41dba0;box-shadow:0 0 0 5px #41dba022}
+#board.visible{display:block}.board-controls{max-width:1600px;margin:0 auto 16px;display:flex;justify-content:flex-end;align-items:center;gap:13px}.board-live{font-size:11px;color:#9de7c7;display:flex;align-items:center;gap:8px}.board-live .dot{background:#41dba0;box-shadow:0 0 0 5px #41dba022}
 .board-grid{max-width:1600px;margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,25px)}
 .board-card{min-height:min(66vh,610px);background:linear-gradient(145deg,#fff 0%,#f4f7fc 100%);color:#17243a;border-radius:22px;padding:clamp(22px,3vw,43px);display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 18px 50px #0003;position:relative;overflow:hidden}
 .board-card:before{content:"";position:absolute;top:0;left:0;width:100%;height:6px;background:linear-gradient(90deg,#4775ed,#79a0ff)}
@@ -115,7 +115,7 @@ function normalizeData(data){
  * Jika dibuka lewat URL Web App (/exec) → memakai google.script.run.
  * Jika file ini dibuka/di-hosting di tempat lain → isi API_URL dengan URL Web App (/exec).
  */
-const API_URL="";
+const API_URL="https://script.google.com/macros/s/AKfycbws-t2IbPlygrzp6dZ2HTTK13ztjZ7WM0cnVgfE9dX0eDCD0F4nsxeGNp-dUOLEBK6h/exec";
 function inAppsScript(){return !!(window.google&&google.script&&google.script.run)}
 function apiUrl(){return API_URL||(new URLSearchParams(location.search).get("api"))||localStorageGet("antreanApiUrl")}
 function localStorageGet(k){try{return localStorage.getItem(k)||""}catch(e){return ""}}
