@@ -43,6 +43,17 @@
 .board-clock{max-width:1600px;margin:clamp(16px,2.2vw,30px) auto 0;text-align:center}
 .board-clock-time{font:800 clamp(42px,6vw,88px) Manrope,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:1px;line-height:1;color:#fff}
 .board-clock-date{margin-top:8px;font-size:clamp(13px,1.3vw,19px);color:#9fb1cb;letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+.break-panel{margin-top:17px}.time-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.btn-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.quick-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.break-list{display:flex;flex-direction:column;gap:7px;margin-top:14px}.break-item{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #f3e2c2;background:#fffaf1;border-radius:10px;padding:10px 12px;font-size:12px}.break-item b{color:#8a5a0b}.break-item .btn{padding:7px 10px;font-size:10px}
+.break-tag{display:inline-flex;font-size:9px;font-weight:800;letter-spacing:1px;border-radius:20px;padding:4px 8px;margin-left:6px;background:#fff0d6;color:#a66b0d}.break-tag.live{background:#d75b64;color:#fff}
+.board-card.on-break{justify-content:flex-start}.board-card.on-break:before{background:linear-gradient(90deg,#e59a2b,#f5c065)}
+.break-big{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 0}
+.break-title{font:800 clamp(38px,5.6vw,80px) Manrope,sans-serif;letter-spacing:2px;color:#b8740f;line-height:1}
+.break-sub{margin-top:12px;font-size:clamp(15px,1.5vw,22px);color:#8793a4;font-weight:600}
+.break-count{margin-top:clamp(16px,2vw,28px);font:800 clamp(52px,7.5vw,112px) Manrope,sans-serif;font-variant-numeric:tabular-nums;color:#17243a;line-height:1}
+.break-count-label{margin-top:10px;font-size:clamp(12px,1.1vw,16px);letter-spacing:2px;text-transform:uppercase;color:#8995a6;font-weight:800}
+.break-soon{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:clamp(10px,1vw,14px) clamp(14px,1.4vw,20px);border-radius:12px;background:#fff6e6;color:#a66b0d;font-weight:800;font-size:clamp(14px,1.4vw,20px)}
+.break-soon span:last-child{font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums}
 .board-exit{border:1px solid #ffffff30;color:#d7e2f3;background:#ffffff0b;border-radius:9px;padding:9px 12px;font-size:11px;font-weight:700}
 .setup-overlay{position:fixed;inset:0;background:#101d35cc;z-index:100;display:none;align-items:center;justify-content:center;padding:20px}.setup-overlay.show{display:flex}.setup-card{width:min(540px,100%);background:white;border-radius:18px;padding:25px;box-shadow:0 25px 80px #0004}.setup-card h2{font:800 20px Manrope;margin:0 0 8px}.setup-card p{font-size:12px;color:#6e7c90;line-height:1.6}.setup-card code{background:#f0f3f8;padding:2px 5px;border-radius:4px}
 @media(max-width:850px){.content-grid{grid-template-columns:1fr}.board-card{min-height:55vh}.board-grid{gap:13px}}
@@ -71,6 +82,11 @@
    <button class="btn btn-primary btn-block" id="addBtn" onclick="addQueue()">Tambahkan ke Antrean &nbsp; →</button>
    <div class="helper">Antrean baru otomatis masuk dengan status <b>Menunggu</b>. Data disimpan online di Google Spreadsheet dan diperbarui otomatis setiap 10 detik.</div>
    <div id="serverHint" class="helper" style="color:#718096"></div>
+   <div class="break-panel">
+    <div class="panel-head" style="margin-bottom:12px;border-top:1px solid #edf1f6;padding-top:18px"><div><div class="panel-title">Break Istirahat</div><div class="panel-caption">Sisipkan istirahat setelah BU selesai</div></div><span style="font-size:18px;color:#d99526">☕</span></div>
+    <div class="room-choice"><button class="btn btn-warn" onclick="openBreak('Board 9')">☕ Istirahat Board 9</button><button class="btn btn-warn" onclick="openBreak('Board 11')">☕ Istirahat Board 11</button></div>
+    <div class="break-list" id="breakList"></div>
+   </div>
   </section>
   <section class="panel">
    <div class="panel-head"><div><div class="panel-title">Daftar Antrean</div><div class="panel-caption">Perbarui status pelayanan setiap Badan Usaha</div></div><span class="badge b-Proses">ONLINE</span></div>
@@ -85,6 +101,15 @@
  <div class="board-clock"><div class="board-clock-time" id="clockTime">--:--:--</div><div class="board-clock-date" id="clockDate">Jam server</div></div>
 
 </section>
+<div class="setup-overlay" id="breakModal" onclick="if(event.target===this)closeBreak()">
+ <div class="setup-card">
+  <h2 id="breakModalTitle">Istirahat</h2>
+  <p id="breakModalDesc">Istirahat dimulai sekarang. Layar akan menampilkan hitung mundur sampai pelayanan dimulai lagi.</p>
+  <div class="field"><label>PELAYANAN DIMULAI LAGI JAM</label><input type="time" id="breakEnd"></div>
+  <div class="quick-row"><button class="btn btn-soft" onclick="addMinutes(15)">+15 mnt</button><button class="btn btn-soft" onclick="addMinutes(30)">+30 mnt</button><button class="btn btn-soft" onclick="addMinutes(60)">+1 jam</button></div>
+  <div class="btn-row" style="margin-top:18px"><button class="btn btn-primary" id="breakBtn" onclick="setBreak()">Mulai Istirahat</button><button class="btn btn-soft" onclick="closeBreak()">Batal</button></div>
+ </div>
+</div>
 <div class="toast" id="toast"></div>
 <script>
 let items=[],selectedRoom="Board 9",isBoard=false,refreshBusy=false;
@@ -106,25 +131,47 @@ function render(){
  $("processCount").textContent=items.filter(x=>x.status==="Proses").length;
  $("doneCount").textContent=items.filter(x=>x.status==="Selesai").length;
  const list=sorted().filter(x=>x.status!=="Selesai");
- $("queueList").innerHTML=list.length?list.map(x=>`<div class="queue-item"><div class="queue-main"><div class="queue-room">${esc(x.room)}</div><div class="queue-bu">${esc(x.name)}</div><div class="queue-time">${esc(x.masuk||"")}</div><div style="margin-top:7px"><span class="badge b-${esc(x.status)}">${esc(x.status)}</span></div></div><div class="queue-actions">${x.status!=="Proses"?`<button class="btn btn-primary" data-id="${esc(x.id)}" data-status="Proses">Proses</button>`:""}<button class="btn btn-success" data-id="${esc(x.id)}" data-status="Selesai">Selesai</button>${x.status!=="Menunggu"?`<button class="btn btn-soft" data-id="${esc(x.id)}" data-status="Menunggu">Menunggu</button>`:""}</div></div>`).join(""):`<div class="empty"><div class="empty-icon">✓</div>Tidak ada antrean aktif saat ini.</div>`;
+ $("queueList").innerHTML=list.length?list.map(x=>`<div class="queue-item"><div class="queue-main"><div class="queue-room">${esc(x.room)}</div><div class="queue-bu">${esc(x.name)}</div><div class="queue-time">${esc(x.masuk||"")}</div><div style="margin-top:7px"><span class="badge b-${esc(x.status)}">${esc(x.status)}</span></div></div><div class="queue-actions">${x.status!=="Proses"?`<button class="btn btn-primary" data-id="${esc(x.id)}" data-status="Proses">Proses</button>`:""}<button class="btn btn-success" data-id="${esc(x.id)}" data-status="Selesai">Selesai</button>${x.status==="Proses"?`<button class="btn btn-warn" data-done-break="${esc(x.id)}" data-room="${esc(x.room)}">Selesai &amp; Istirahat</button>`:""}${x.status!=="Menunggu"?`<button class="btn btn-soft" data-id="${esc(x.id)}" data-status="Menunggu">Menunggu</button>`:""}</div></div>`).join(""):`<div class="empty"><div class="empty-icon">✓</div>Tidak ada antrean aktif saat ini.</div>`;
  document.querySelectorAll("[data-id][data-status]").forEach(b=>b.addEventListener("click",()=>changeStatus(b.dataset.id,b.dataset.status)));
- renderBoard();
+ document.querySelectorAll("[data-done-break]").forEach(b=>b.addEventListener("click",()=>openBreak(b.dataset.room,b.dataset.doneBreak)));
+ renderBoard();renderBreakList();
 }
+function breakState(room){
+ const b=breaks[room];if(!b)return null;
+ const now=serverNow();
+ if(now>=b.endMs)return null;
+ return now>=b.startMs?{...b,live:true}:{...b,live:false};
+}
+let lastBreakKey="";
+function breakKey(){return rooms.map(r=>{const b=breakState(r);return b?(b.live?"L":"S")+b.startMs+"-"+b.endMs:"-"}).join("|")}
 function renderBoard(){
+ lastBreakKey=breakKey();
  $("boardGrid").innerHTML=rooms.map(room=>{
+  const br=breakState(room);
+  if(br&&br.live){
+   return `<article class="board-card on-break"><div class="board-room">${room}</div><div class="break-big"><div class="break-title">ISTIRAHAT</div><div class="break-sub">Pelayanan dilanjutkan pukul ${esc(br.selesai)} WIB${br.catatan?" · "+esc(br.catatan):""}</div><div class="break-count" data-until="${br.endMs}">00:00:00</div><div class="break-count-label">Sisa waktu istirahat</div></div>${(()=>{const n=roomData(room);const nx=n.current&&n.current.status!=="Selesai"?n.current:n.next;return `<div class="board-next"><span>Badan Usaha Selanjutnya</span><strong>${nx?esc(nx.name):"—"}</strong></div>`})()}</article>`;
+  }
   const {current,next}=roomData(room),status=current?current.status:"Menunggu";
   const t=current?`data-status="${esc(current.status)}" data-mulai="${current.mulaiMs||0}" data-selesai="${current.selesaiMs||0}"`:`data-status="none"`;
-  return `<article class="board-card"><div><div class="board-room">${room}</div><div class="board-middle"><div class="board-label">Nama Badan Usaha</div><div class="board-bu">${esc(current?current.name:"Belum ada antrean")}</div><div class="board-status-row"><span class="board-status ${status}">${status}</span><div class="board-timer"><div class="board-timer-value" ${t}>00:00:00</div></div></div></div></div><div class="board-next"><span>Badan Usaha Selanjutnya</span><strong>${next?esc(next.name):"—"}</strong></div></article>`;
+  const soon=br?`<div class="break-soon"><span>☕ Istirahat ${esc(br.mulai)}–${esc(br.selesai)}</span><span>mulai dalam <span data-until="${br.startMs}">00:00:00</span></span></div>`:"";
+  return `<article class="board-card"><div><div class="board-room">${room}</div><div class="board-middle"><div class="board-label">Nama Badan Usaha</div><div class="board-bu">${esc(current?current.name:"Belum ada antrean")}</div><div class="board-status-row"><span class="board-status ${status}">${status}</span><div class="board-timer"><div class="board-timer-value" ${t}>00:00:00</div></div></div>${soon}</div></div><div class="board-next"><span>Badan Usaha Selanjutnya</span><strong>${next?esc(next.name):"—"}</strong></div></article>`;
  }).join("");
  tick();
 }
+function renderBreakList(){
+ const el=$("breakList");if(!el)return;
+ const rows=rooms.map(r=>({r,b:breakState(r)})).filter(x=>x.b);
+ el.innerHTML=rows.map(({r,b})=>`<div class="break-item"><div><b>${esc(r)}</b> · ${esc(b.mulai)}–${esc(b.selesai)}<span class="break-tag ${b.live?"live":""}">${b.live?"BERLANGSUNG":"TERJADWAL"}</span></div><button class="btn btn-soft" onclick="clearBreak('${esc(r)}')">Akhiri</button></div>`).join("");
+}
 /* ===== Stopwatch & jam server ===== */
-let serverOffset=0; // selisih jam server - jam perangkat (ms)
+let serverOffset=0,breaks={}; // selisih jam server - jam perangkat (ms)
 function serverNow(){return Date.now()+serverOffset}
 function fmtDur(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),d=s%60;return [h,m,d].map(n=>String(n).padStart(2,"0")).join(":")}
 const HARI=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"],BULAN=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 function tick(){
  const now=serverNow();
+ if(breakKey()!==lastBreakKey){renderBoard();renderBreakList();return;}
+ document.querySelectorAll("[data-until]").forEach(el=>{el.textContent=fmtDur(+el.dataset.until-now)});
  document.querySelectorAll(".board-timer-value").forEach(el=>{
   const st=el.dataset.status,mulai=+el.dataset.mulai||0,selesai=+el.dataset.selesai||0;
   let ms=0,cls="";
@@ -142,6 +189,7 @@ function normalizeData(data){
  const q=(data&&data.queues)||[];
  items=q.map((x,i)=>({id:String(x.id),name:String(x.bu||""),room:String(x.ruangan||""),status:String(x.status||"Menunggu"),masuk:String(x.masuk||""),mulaiMs:+x.mulaiMs||0,selesaiMs:+x.selesaiMs||0,order:i}));
  if(data&&data.serverMs)serverOffset=+data.serverMs-Date.now();
+ breaks=(data&&data.breaks)||{};
 }
 /* ===== KONEKSI SERVER =====
  * Jika dibuka lewat URL Web App (/exec) → memakai google.script.run.
@@ -208,13 +256,42 @@ function changeStatus(id,status){
   .then(()=>{toast("Status diperbarui menjadi "+status+".");refreshData(false);})
   .catch(err=>toast(errMsg(err,"Gagal memperbarui status.")));
 }
+function hhmm(ms){const d=new Date(ms+7*3600000);return String(d.getUTCHours()).padStart(2,"0")+":"+String(d.getUTCMinutes()).padStart(2,"0")}
+let breakCtx={room:"",doneId:""};
+function openBreak(room,doneId){
+ if(!hasServer())return;
+ breakCtx={room,doneId:doneId||""};
+ $("breakModalTitle").textContent="☕ Istirahat "+room;
+ $("breakModalDesc").textContent=(doneId?"BU yang sedang diproses akan ditandai Selesai, lalu ":"")+"istirahat dimulai sekarang. Layar menampilkan hitung mundur sampai pelayanan dimulai lagi.";
+ $("breakEnd").value=hhmm(serverNow()+30*60000);
+ $("breakModal").classList.add("show");setTimeout(()=>$("breakEnd").focus(),50);
+}
+function closeBreak(){$("breakModal").classList.remove("show")}
+function addMinutes(min){$("breakEnd").value=hhmm(serverNow()+min*60000)}
+function setBreak(){
+ const selesai=$("breakEnd").value,{room,doneId}=breakCtx;
+ if(!selesai){toast("Isi jam pelayanan dimulai lagi.");return;}
+ const btn=$("breakBtn");btn.disabled=true;
+ const step=doneId?callServer("updateStatus",{id:doneId,status:"Selesai",petugas:""}):Promise.resolve();
+ step.then(()=>callServer("setBreak",{ruangan:room,selesai,catatan:""}))
+  .then(()=>{closeBreak();toast("Istirahat "+room+" sampai pukul "+selesai+".");refreshData(false);})
+  .catch(err=>toast(errMsg(err,"Gagal mengatur istirahat.")))
+  .finally(()=>{btn.disabled=false;});
+}
+function clearBreak(ruangan){
+ if(!hasServer())return;
+ callServer("clearBreak",{ruangan})
+  .then(()=>{toast("Istirahat "+ruangan+" diakhiri.");refreshData(false);})
+  .catch(err=>toast(errMsg(err,"Gagal membatalkan break.")));
+}
 function chooseRoom(room){selectedRoom=room;$("choose9").classList.toggle("selected",room==="Board 9");$("choose11").classList.toggle("selected",room==="Board 11")}
 window.chooseRoom=chooseRoom;window.addQueue=addQueue;
 window.showInput=()=>{isBoard=false;$("board").classList.remove("visible");$("appHeader").style.display="flex";$("appShell").style.display="block";$("inputTab").classList.add("active")};
 window.showBoard=()=>{isBoard=true;$("appHeader").style.display="none";$("appShell").style.display="none";$("board").classList.add("visible");$("inputTab").classList.remove("active");renderBoard();if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{})};
 window.hideBoard=()=>{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});window.showInput()};
 $("buName").addEventListener("keydown",e=>{if(e.key==="Enter")addQueue()});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&isBoard)window.hideBoard()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if($("breakModal").classList.contains("show"))closeBreak();else if(isBoard)window.hideBoard();}});
+$("breakEnd").addEventListener("keydown",e=>{if(e.key==="Enter")setBreak()});
 let syncTimer=null;
 function startSync(){
  setConnection(false,"Menghubungkan ke server…");
