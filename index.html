@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#101d35">
-<title>RuangFlow — Sistem Antrean Lokal</title>
+<title>Sistem Antrean Ruangan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,7 +27,7 @@
 .toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#14243e;color:#fff;padding:12px 17px;border-radius:10px;font-size:12px;box-shadow:0 8px 25px #0002;transition:.25s;z-index:50}.toast.show{opacity:1;transform:translate(-50%,0)}
 /* Full-screen board */
 #board{position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at 50% -20%,#263e66 0%,#111f38 50%,#0b1629 100%);color:#fff;display:none;overflow:auto;padding:clamp(18px,3vw,42px)}
-#board.visible{display:block}.board-top{max-width:1600px;margin:0 auto 25px;display:flex;justify-content:space-between;align-items:center}.board-brand{display:flex;align-items:center;gap:12px}.board-title{font:800 clamp(19px,2.2vw,29px) Manrope;letter-spacing:1.4px}.board-kicker{font-size:10px;letter-spacing:2px;color:#9fb1cb;margin-top:4px}.board-live{font-size:11px;color:#9de7c7;display:flex;align-items:center;gap:8px}.board-live .dot{background:#41dba0;box-shadow:0 0 0 5px #41dba022}
+#board.visible{display:block}.board-controls{max-width:1600px;margin:0 auto 16px;display:flex;justify-content:flex-end;align-items:center;gap:13px}.board-brand{display:flex;align-items:center;gap:12px}.board-title{font:800 clamp(19px,2.2vw,29px) Manrope;letter-spacing:1.4px}.board-kicker{font-size:10px;letter-spacing:2px;color:#9fb1cb;margin-top:4px}.board-live{font-size:11px;color:#9de7c7;display:flex;align-items:center;gap:8px}.board-live .dot{background:#41dba0;box-shadow:0 0 0 5px #41dba022}
 .board-grid{max-width:1600px;margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,25px)}
 .board-card{min-height:min(66vh,610px);background:linear-gradient(145deg,#fff 0%,#f4f7fc 100%);color:#17243a;border-radius:22px;padding:clamp(22px,3vw,43px);display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 18px 50px #0003;position:relative;overflow:hidden}
 .board-card:before{content:"";position:absolute;top:0;left:0;width:100%;height:6px;background:linear-gradient(90deg,#4775ed,#79a0ff)}
@@ -44,8 +44,8 @@
 </head>
 <body>
 <header class="app-header" id="appHeader">
- <div class="brand"><div class="brand-mark">R</div><div><div class="brand-name">RuangFlow</div><div class="brand-sub">Queue Management System</div></div></div>
- <div class="header-right"><div class="connection"><span class="dot" id="connectionDot"></span><span id="connectionText">Data lokal</span></div></div>
+ <div class="brand"><div class="brand-mark">R</div><div><div class="brand-name">RuangFlow</div><div class="brand-sub">Sistem Antrean Online</div></div></div>
+ <div class="header-right"><div class="connection"><span class="dot" id="connectionDot"></span><span id="connectionText">Menghubungkan…</span></div></div>
 </header>
 <div class="shell" id="appShell">
  <div class="topline"><div><div class="eyebrow">Layanan Badan Usaha</div><h1 class="page-title">Sistem Antrean Ruangan</h1><div class="page-desc">Kelola antrean dan pantau pelayanan Board 9 &amp; Board 11.</div></div>
@@ -62,57 +62,138 @@
    <div class="field"><label>NAMA BADAN USAHA</label><input id="buName" placeholder="Contoh: PT Energi Nusantara" maxlength="120"></div>
    <div class="field"><label>PILIH RUANGAN</label><div class="room-choice"><button class="room-option selected" id="choose9" onclick="chooseRoom('Board 9')">Board 9</button><button class="room-option" id="choose11" onclick="chooseRoom('Board 11')">Board 11</button></div></div>
    <button class="btn btn-primary btn-block" id="addBtn" onclick="addQueue()">Tambahkan ke Antrean &nbsp; →</button>
-   <div class="helper">Antrean baru otomatis masuk dengan status <b>Menunggu</b>. Data disimpan di penyimpanan lokal dan tersimpan pada browser ini.</div>
-   <div id="firebaseHint" class="helper" style="color:#718096"></div>
+   <div class="helper">Antrean baru otomatis masuk dengan status <b>Menunggu</b>. Data disimpan online di Google Spreadsheet dan diperbarui otomatis setiap 10 detik.</div>
+   <div id="serverHint" class="helper" style="color:#718096"></div>
   </section>
   <section class="panel">
-   <div class="panel-head"><div><div class="panel-title">Daftar Antrean</div><div class="panel-caption">Perbarui status pelayanan setiap Badan Usaha</div></div><span class="badge b-Proses">DATA LOKAL</span></div>
+   <div class="panel-head"><div><div class="panel-title">Daftar Antrean</div><div class="panel-caption">Perbarui status pelayanan setiap Badan Usaha</div></div><span class="badge b-Proses">ONLINE</span></div>
    <div class="queue-list" id="queueList"><div class="empty"><div class="empty-icon">◌</div>Menunggu koneksi database…</div></div>
   </section>
  </div>
 </div>
 
 <section id="board">
- <div class="board-top"><div class="board-brand"><div class="brand-mark">R</div><div><div class="board-title">INFORMASI ANTREAN</div><div class="board-kicker">LAYANAN BADAN USAHA · BOARD 9 &amp; BOARD 11</div></div></div><div style="display:flex;align-items:center;gap:13px"><div class="board-live"><span class="dot"></span> LIVE</div><button class="board-exit" onclick="hideBoard()">✕ &nbsp; Keluar</button></div></div>
+ <div class="board-controls"><div class="board-live"><span class="dot"></span> LIVE · DATA TERBARU</div><button class="board-exit" onclick="hideBoard()">✕ &nbsp; Keluar</button></div>
  <div class="board-grid" id="boardGrid"></div>
 
 </section>
 <div class="toast" id="toast"></div>
 <script>
-let items=[],selectedRoom="Board 9",isBoard=false;
-const STORAGE_KEY="ruangflow_queue_v1",rooms=["Board 9","Board 11"];
+let items=[],selectedRoom="Board 9",isBoard=false,refreshBusy=false;
+const rooms=["Board 9","Board 11"];
 const $=id=>document.getElementById(id);
 function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600)}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function load(){try{const v=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");return Array.isArray(v)?v:[]}catch{return []}}
-function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(items))}
-function sorted(){return [...items].sort((a,b)=>a.createdAt-b.createdAt)}
-function roomData(room){const a=sorted().filter(x=>x.room===room);const current=a.find(x=>x.status==="Proses")||a.find(x=>x.status==="Menunggu")||a.find(x=>x.status==="Selesai");const next=a.find(x=>x.status==="Menunggu"&&(!current||x.id!==current.id));return{current,next}}
+function setConnection(ok,msg){$("connectionDot").classList.toggle("on",ok);$("connectionText").textContent=msg}
+function sorted(){return [...items].sort((a,b)=>a.order-b.order)}
+function roomData(room){
+ const list=sorted().filter(x=>x.room===room);
+ const current=list.find(x=>x.status==="Proses")||list.find(x=>x.status==="Menunggu")||list.find(x=>x.status==="Selesai");
+ const next=list.find(x=>x.status==="Menunggu"&&(!current||x.id!==current.id));
+ return{current,next};
+}
 function render(){
- $("totalCount").textContent=items.length;$("processCount").textContent=items.filter(x=>x.status==="Proses").length;$("doneCount").textContent=items.filter(x=>x.status==="Selesai").length;
+ $("totalCount").textContent=items.length;
+ $("processCount").textContent=items.filter(x=>x.status==="Proses").length;
+ $("doneCount").textContent=items.filter(x=>x.status==="Selesai").length;
  const list=sorted().filter(x=>x.status!=="Selesai");
- $("queueList").innerHTML=list.length?list.map(x=>`<div class="queue-item"><div class="queue-main"><div class="queue-room">${esc(x.room)}</div><div class="queue-bu">${esc(x.name)}</div><div class="queue-time">${new Date(x.createdAt).toLocaleString("id-ID")}</div><div style="margin-top:7px"><span class="badge b-${x.status}">${x.status}</span></div></div><div class="queue-actions">${x.status!=="Proses"?`<button class="btn btn-primary" data-id="${x.id}" data-status="Proses">Proses</button>`:""}<button class="btn btn-success" data-id="${x.id}" data-status="Selesai">Selesai</button>${x.status!=="Menunggu"?`<button class="btn btn-soft" data-id="${x.id}" data-status="Menunggu">Menunggu</button>`:""}</div></div>`).join(""):`<div class="empty"><div class="empty-icon">✓</div>Tidak ada antrean aktif saat ini.</div>`;
+ $("queueList").innerHTML=list.length?list.map(x=>`<div class="queue-item"><div class="queue-main"><div class="queue-room">${esc(x.room)}</div><div class="queue-bu">${esc(x.name)}</div><div class="queue-time">${esc(x.masuk||"")}</div><div style="margin-top:7px"><span class="badge b-${esc(x.status)}">${esc(x.status)}</span></div></div><div class="queue-actions">${x.status!=="Proses"?`<button class="btn btn-primary" data-id="${esc(x.id)}" data-status="Proses">Proses</button>`:""}<button class="btn btn-success" data-id="${esc(x.id)}" data-status="Selesai">Selesai</button>${x.status!=="Menunggu"?`<button class="btn btn-soft" data-id="${esc(x.id)}" data-status="Menunggu">Menunggu</button>`:""}</div></div>`).join(""):`<div class="empty"><div class="empty-icon">✓</div>Tidak ada antrean aktif saat ini.</div>`;
  document.querySelectorAll("[data-id][data-status]").forEach(b=>b.addEventListener("click",()=>changeStatus(b.dataset.id,b.dataset.status)));
  renderBoard();
 }
 function renderBoard(){
- $("boardGrid").innerHTML=rooms.map(room=>{const{current,next}=roomData(room),status=current?current.status:"Menunggu";return `<article class="board-card"><div><div class="board-room">${room}</div><div class="board-middle"><div class="board-label">Nama Badan Usaha</div><div class="board-bu">${esc(current?current.name:"Belum ada antrean")}</div><span class="board-status ${status}">${status}</span></div></div><div class="board-next"><span>Badan Usaha Selanjutnya</span><strong>${next?esc(next.name):"—"}</strong></div></article>`}).join("");
- $("boardClock").textContent="Terakhir diperbarui "+new Date().toLocaleTimeString("id-ID");
+ $("boardGrid").innerHTML=rooms.map(room=>{
+  const {current,next}=roomData(room),status=current?current.status:"Menunggu";
+  return `<article class="board-card"><div><div class="board-room">${room}</div><div class="board-middle"><div class="board-label">Nama Badan Usaha</div><div class="board-bu">${esc(current?current.name:"Belum ada antrean")}</div><span class="board-status ${status}">${status}</span></div></div><div class="board-next"><span>Badan Usaha Selanjutnya</span><strong>${next?esc(next.name):"—"}</strong></div></article>`;
+ }).join("");
 }
-function addQueue(){const name=$("buName").value.trim();if(!name){toast("Nama Badan Usaha wajib diisi.");$("buName").focus();return}items.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2),name,room:selectedRoom,status:"Menunggu",createdAt:Date.now()});save();render();$("buName").value="";toast("Antrean berhasil ditambahkan.")}
-function changeStatus(id,status){const x=items.find(q=>q.id===id);if(!x)return;x.status=status;x.updatedAt=Date.now();save();render();toast("Status diperbarui menjadi "+status+".")}
+function normalizeData(data){
+ const q=(data&&data.queues)||[];
+ items=q.map((x,i)=>({id:String(x.id),name:String(x.bu||""),room:String(x.ruangan||""),status:String(x.status||"Menunggu"),masuk:String(x.masuk||""),order:i}));
+}
+/* ===== KONEKSI SERVER =====
+ * Jika dibuka lewat URL Web App (/exec) → memakai google.script.run.
+ * Jika file ini dibuka/di-hosting di tempat lain → isi API_URL dengan URL Web App (/exec).
+ */
+const API_URL="";
+function inAppsScript(){return !!(window.google&&google.script&&google.script.run)}
+function apiUrl(){return API_URL||(new URLSearchParams(location.search).get("api"))||localStorageGet("antreanApiUrl")}
+function localStorageGet(k){try{return localStorage.getItem(k)||""}catch(e){return ""}}
+function localStorageSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function canConnect(){return inAppsScript()||!!apiUrl()}
+function callServer(fn,payload){
+ if(inAppsScript()){
+  return new Promise((resolve,reject)=>{
+   const run=google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
+   payload===undefined?run[fn]():run[fn](payload);
+  });
+ }
+ const url=apiUrl();
+ if(!url)return Promise.reject(new Error("URL Web App belum diatur."));
+ const q=url+(url.includes("?")?"&":"?")+"action="+encodeURIComponent(fn)+"&payload="+encodeURIComponent(JSON.stringify(payload||{}))+"&_="+Date.now();
+ return fetch(q,{method:"GET",redirect:"follow"})
+  .then(r=>{if(!r.ok)throw new Error("Server merespon HTTP "+r.status);return r.text();})
+  .then(t=>{let j;try{j=JSON.parse(t)}catch(e){throw new Error("Respon bukan JSON. Pastikan akses Web App = Anyone dan URL berakhiran /exec.")}
+   if(!j.ok)throw new Error(j.error||"Server error");return j.data;});
+}
+function errMsg(err,fallback){return err&&err.message?err.message:String(err||fallback)}
+function refreshData(silent=true){
+ if(refreshBusy||!canConnect())return;
+ refreshBusy=true;
+ callServer("getData")
+  .then(data=>{
+   if(!data||!Array.isArray(data.queues)){setConnection(false,"Respon server kosong");if(!silent)toast("Server tidak mengirim data. Cek log eksekusi Apps Script.");return;}
+   normalizeData(data);render();setConnection(true,"Terhubung · "+(data.serverTime||"")+" · Refresh 10 detik");
+  })
+  .catch(err=>{
+   const msg=errMsg(err,"Gagal mengambil data dari server.");
+   setConnection(false,"Koneksi server bermasalah");
+   if(!items.length)$("queueList").innerHTML='<div class="empty"><div class="empty-icon">!</div>'+esc(msg)+'</div>';
+   if(!silent)toast(msg);
+  })
+  .finally(()=>{refreshBusy=false;});
+}
+function hasServer(){if(canConnect())return true;askApiUrl();return false;}
+function askApiUrl(){
+ const u=prompt("Masukkan URL Web App Apps Script (berakhiran /exec):",apiUrl()||"");
+ if(!u)return toast("URL Web App belum diatur.");
+ if(!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(u.trim()))return toast("URL tidak valid. Gunakan URL https://script.google.com/.../exec");
+ localStorageSet("antreanApiUrl",u.trim());startSync();
+}
+function addQueue(){
+ if(!hasServer())return;
+ const name=$("buName").value.trim();
+ if(!name){toast("Nama Badan Usaha wajib diisi.");$("buName").focus();return;}
+ const btn=$("addBtn");btn.disabled=true;
+ callServer("addQueue",{bu:name,ruangan:selectedRoom,catatan:""})
+  .then(result=>{$("buName").value="";toast("Antrean berhasil ditambahkan"+(result&&result.nomor?" · "+result.nomor:"")+".");refreshData(false);})
+  .catch(err=>toast(errMsg(err,"Gagal menambahkan antrean.")))
+  .finally(()=>{btn.disabled=false;});
+}
+function changeStatus(id,status){
+ if(!hasServer())return;
+ callServer("updateStatus",{id,status,petugas:""})
+  .then(()=>{toast("Status diperbarui menjadi "+status+".");refreshData(false);})
+  .catch(err=>toast(errMsg(err,"Gagal memperbarui status.")));
+}
 function chooseRoom(room){selectedRoom=room;$("choose9").classList.toggle("selected",room==="Board 9");$("choose11").classList.toggle("selected",room==="Board 11")}
 window.chooseRoom=chooseRoom;window.addQueue=addQueue;
 window.showInput=()=>{isBoard=false;$("board").classList.remove("visible");$("appHeader").style.display="flex";$("appShell").style.display="block";$("inputTab").classList.add("active")};
 window.showBoard=()=>{isBoard=true;$("appHeader").style.display="none";$("appShell").style.display="none";$("board").classList.add("visible");$("inputTab").classList.remove("active");renderBoard();if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{})};
 window.hideBoard=()=>{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});window.showInput()};
 $("buName").addEventListener("keydown",e=>{if(e.key==="Enter")addQueue()});
-window.addEventListener("storage",e=>{if(e.key===STORAGE_KEY){items=load();render()}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&isBoard)window.hideBoard()});
-items=load();render();
-document.getElementById("connectionText").textContent="Data lokal · Browser ini";
-document.getElementById("connectionDot").classList.add("on");
-document.getElementById("firebaseHint").textContent="Data tersimpan di browser/perangkat ini. Tidak memerlukan koneksi penyimpanan lokal.";
+let syncTimer=null;
+function startSync(){
+ setConnection(false,"Menghubungkan ke server…");
+ refreshData(false);
+ if(!syncTimer)syncTimer=setInterval(()=>refreshData(true),10000);
+}
+if(canConnect()){startSync();}
+else{
+ setConnection(false,"URL Web App belum diatur");
+ $("queueList").innerHTML='<div class="empty"><div class="empty-icon">!</div>Belum terhubung ke server.<br><br><button class="btn btn-primary" onclick="askApiUrl()">Atur URL Web App</button></div>';
+}
 </script>
 </body>
 </html>
