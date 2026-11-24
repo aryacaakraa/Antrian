@@ -33,9 +33,16 @@
 .board-card:before{content:"";position:absolute;top:0;left:0;width:100%;height:6px;background:linear-gradient(90deg,#4775ed,#79a0ff)}
 .board-room{font:800 clamp(23px,3vw,39px) Manrope;letter-spacing:-1px;color:#1b3153;border-bottom:1px solid #e6ebf2;padding-bottom:18px}
 .board-middle{padding:22px 0}.board-label{font-size:11px;color:#8995a6;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}.board-bu{font:800 clamp(30px,4.3vw,58px) Manrope;letter-spacing:-1.7px;line-height:1.12;margin:13px 0 21px;overflow-wrap:anywhere;color:#182b49}
-.board-status{display:inline-flex;align-items:center;gap:9px;border-radius:10px;padding:11px 15px;font-size:clamp(13px,1.4vw,17px);font-weight:800}.board-status:before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}.board-status.Proses{background:#e8efff;color:#315fce}.board-status.Selesai{background:#e4f7ed;color:#13845c}.board-status.Menunggu{background:#fff3dc;color:#a56b0c}
-.board-next{border-top:1px solid #e6ebf2;padding-top:15px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#8793a4;font-size:11px}.board-next strong{font-size:13px;color:#53627a;text-align:right;max-width:58%;overflow-wrap:anywhere}
+.board-status{display:inline-flex;align-items:center;gap:clamp(10px,1vw,14px);border-radius:14px;padding:clamp(12px,1.3vw,18px) clamp(18px,2vw,28px);font-size:clamp(20px,2.4vw,34px);font-weight:800}.board-status:before{content:"";width:clamp(11px,1vw,15px);height:clamp(11px,1vw,15px);border-radius:50%;background:currentColor}.board-status.Proses{background:#e8efff;color:#315fce}.board-status.Selesai{background:#e4f7ed;color:#13845c}.board-status.Menunggu{background:#fff3dc;color:#a56b0c}
+.board-next{border-top:1px solid #e6ebf2;padding-top:clamp(16px,1.6vw,24px);display:flex;align-items:center;justify-content:space-between;gap:16px;color:#8793a4;font-size:clamp(16px,1.6vw,24px);font-weight:600}.board-next span{white-space:nowrap}.board-next strong{font-size:clamp(20px,2.3vw,34px);color:#3d4d66;text-align:right;max-width:60%;overflow-wrap:anywhere;font-family:Manrope,sans-serif;font-weight:800}
 
+.board-status-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.board-timer{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.board-timer-label{font-size:clamp(11px,1vw,14px);color:#8995a6;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}
+.board-timer-value{font:800 clamp(34px,4.6vw,66px) Manrope,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1;color:#b3bdcb}
+.board-timer-value.run{color:#315fce}.board-timer-value.done{color:#13845c}
+.board-clock{max-width:1600px;margin:clamp(16px,2.2vw,30px) auto 0;text-align:center}
+.board-clock-time{font:800 clamp(42px,6vw,88px) Manrope,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:1px;line-height:1;color:#fff}
+.board-clock-date{margin-top:8px;font-size:clamp(13px,1.3vw,19px);color:#9fb1cb;letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
 .board-exit{border:1px solid #ffffff30;color:#d7e2f3;background:#ffffff0b;border-radius:9px;padding:9px 12px;font-size:11px;font-weight:700}
 .setup-overlay{position:fixed;inset:0;background:#101d35cc;z-index:100;display:none;align-items:center;justify-content:center;padding:20px}.setup-overlay.show{display:flex}.setup-card{width:min(540px,100%);background:white;border-radius:18px;padding:25px;box-shadow:0 25px 80px #0004}.setup-card h2{font:800 20px Manrope;margin:0 0 8px}.setup-card p{font-size:12px;color:#6e7c90;line-height:1.6}.setup-card code{background:#f0f3f8;padding:2px 5px;border-radius:4px}
 @media(max-width:850px){.content-grid{grid-template-columns:1fr}.board-card{min-height:55vh}.board-grid{gap:13px}}
@@ -75,6 +82,7 @@
 <section id="board">
  <div class="board-controls"><div class="board-live"><span class="dot"></span> LIVE · DATA TERBARU</div><button class="board-exit" onclick="hideBoard()">✕ &nbsp; Keluar</button></div>
  <div class="board-grid" id="boardGrid"></div>
+ <div class="board-clock"><div class="board-clock-time" id="clockTime">--:--:--</div><div class="board-clock-date" id="clockDate">Jam server</div></div>
 
 </section>
 <div class="toast" id="toast"></div>
@@ -88,7 +96,8 @@ function setConnection(ok,msg){$("connectionDot").classList.toggle("on",ok);$("c
 function sorted(){return [...items].sort((a,b)=>a.order-b.order)}
 function roomData(room){
  const list=sorted().filter(x=>x.room===room);
- const current=list.find(x=>x.status==="Proses")||list.find(x=>x.status==="Menunggu")||list.find(x=>x.status==="Selesai");
+ const done=list.filter(x=>x.status==="Selesai").sort((a,b)=>(b.selesaiMs||0)-(a.selesaiMs||0));
+ const current=list.find(x=>x.status==="Proses")||list.find(x=>x.status==="Menunggu")||done[0];
  const next=list.find(x=>x.status==="Menunggu"&&(!current||x.id!==current.id));
  return{current,next};
 }
@@ -104,12 +113,35 @@ function render(){
 function renderBoard(){
  $("boardGrid").innerHTML=rooms.map(room=>{
   const {current,next}=roomData(room),status=current?current.status:"Menunggu";
-  return `<article class="board-card"><div><div class="board-room">${room}</div><div class="board-middle"><div class="board-label">Nama Badan Usaha</div><div class="board-bu">${esc(current?current.name:"Belum ada antrean")}</div><span class="board-status ${status}">${status}</span></div></div><div class="board-next"><span>Badan Usaha Selanjutnya</span><strong>${next?esc(next.name):"—"}</strong></div></article>`;
+  const t=current?`data-status="${esc(current.status)}" data-mulai="${current.mulaiMs||0}" data-selesai="${current.selesaiMs||0}"`:`data-status="none"`;
+  return `<article class="board-card"><div><div class="board-room">${room}</div><div class="board-middle"><div class="board-label">Nama Badan Usaha</div><div class="board-bu">${esc(current?current.name:"Belum ada antrean")}</div><div class="board-status-row"><span class="board-status ${status}">${status}</span><div class="board-timer"><div class="board-timer-value" ${t}>00:00:00</div></div></div></div></div><div class="board-next"><span>Badan Usaha Selanjutnya</span><strong>${next?esc(next.name):"—"}</strong></div></article>`;
  }).join("");
+ tick();
 }
+/* ===== Stopwatch & jam server ===== */
+let serverOffset=0; // selisih jam server - jam perangkat (ms)
+function serverNow(){return Date.now()+serverOffset}
+function fmtDur(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),d=s%60;return [h,m,d].map(n=>String(n).padStart(2,"0")).join(":")}
+const HARI=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"],BULAN=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+function tick(){
+ const now=serverNow();
+ document.querySelectorAll(".board-timer-value").forEach(el=>{
+  const st=el.dataset.status,mulai=+el.dataset.mulai||0,selesai=+el.dataset.selesai||0;
+  let ms=0,cls="";
+  if(st==="Proses"&&mulai){ms=now-mulai;cls="run";}
+  else if(st==="Selesai"&&mulai&&selesai){ms=selesai-mulai;cls="done";}
+  el.textContent=fmtDur(ms);el.className="board-timer-value"+(cls?" "+cls:"");
+ });
+ const j=new Date(now+7*3600000); // WIB (UTC+7)
+ const p=n=>String(n).padStart(2,"0");
+ $("clockTime").textContent=p(j.getUTCHours())+":"+p(j.getUTCMinutes())+":"+p(j.getUTCSeconds());
+ $("clockDate").textContent=HARI[j.getUTCDay()]+", "+j.getUTCDate()+" "+BULAN[j.getUTCMonth()]+" "+j.getUTCFullYear()+" · WIB";
+}
+setInterval(tick,1000);
 function normalizeData(data){
  const q=(data&&data.queues)||[];
- items=q.map((x,i)=>({id:String(x.id),name:String(x.bu||""),room:String(x.ruangan||""),status:String(x.status||"Menunggu"),masuk:String(x.masuk||""),order:i}));
+ items=q.map((x,i)=>({id:String(x.id),name:String(x.bu||""),room:String(x.ruangan||""),status:String(x.status||"Menunggu"),masuk:String(x.masuk||""),mulaiMs:+x.mulaiMs||0,selesaiMs:+x.selesaiMs||0,order:i}));
+ if(data&&data.serverMs)serverOffset=+data.serverMs-Date.now();
 }
 /* ===== KONEKSI SERVER =====
  * Jika dibuka lewat URL Web App (/exec) → memakai google.script.run.
