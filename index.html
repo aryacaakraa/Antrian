@@ -140,10 +140,13 @@ function breakState(room){
  const b=breaks[room];if(!b)return null;
  const now=serverNow();
  if(now>=b.endMs)return null;
- return now>=b.startMs?{...b,live:true}:{...b,live:false};
+ if(now<b.startMs)return {...b,live:false,waiting:false};
+ // Istirahat baru tampil setelah BU yang sedang diproses selesai
+ const busy=items.some(x=>x.room===room&&x.status==="Proses");
+ return busy?{...b,live:false,waiting:true}:{...b,live:true,waiting:false};
 }
 let lastBreakKey="";
-function breakKey(){return rooms.map(r=>{const b=breakState(r);return b?(b.live?"L":"S")+b.startMs+"-"+b.endMs:"-"}).join("|")}
+function breakKey(){return rooms.map(r=>{const b=breakState(r);return b?(b.live?"L":b.waiting?"W":"S")+b.startMs+"-"+b.endMs:"-"}).join("|")}
 function renderBoard(){
  lastBreakKey=breakKey();
  $("boardGrid").innerHTML=rooms.map(room=>{
@@ -153,7 +156,9 @@ function renderBoard(){
   }
   const {current,next}=roomData(room),status=current?current.status:"Menunggu";
   const t=current?`data-status="${esc(current.status)}" data-mulai="${current.mulaiMs||0}" data-selesai="${current.selesaiMs||0}"`:`data-status="none"`;
-  const soon=br?`<div class="break-soon"><span>☕ Istirahat ${esc(br.mulai)}–${esc(br.selesai)}</span><span>mulai dalam <span data-until="${br.startMs}">00:00:00</span></span></div>`:"";
+  const soon=!br?"":br.waiting
+   ?`<div class="break-soon"><span>☕ Istirahat setelah BU ini selesai</span><span>s/d ${esc(br.selesai)} WIB</span></div>`
+   :`<div class="break-soon"><span>☕ Istirahat ${esc(br.mulai)}–${esc(br.selesai)}</span><span>mulai dalam <span data-until="${br.startMs}">00:00:00</span></span></div>`;
   return `<article class="board-card"><div><div class="board-room">${room}</div><div class="board-middle"><div class="board-label">Nama Badan Usaha</div><div class="board-bu">${esc(current?current.name:"Belum ada antrean")}</div><div class="board-status-row"><span class="board-status ${status}">${status}</span><div class="board-timer"><div class="board-timer-value" ${t}>00:00:00</div></div></div>${soon}</div></div><div class="board-next"><span>Badan Usaha Selanjutnya</span><strong>${next?esc(next.name):"—"}</strong></div></article>`;
  }).join("");
  tick();
@@ -161,7 +166,7 @@ function renderBoard(){
 function renderBreakList(){
  const el=$("breakList");if(!el)return;
  const rows=rooms.map(r=>({r,b:breakState(r)})).filter(x=>x.b);
- el.innerHTML=rows.map(({r,b})=>`<div class="break-item"><div><b>${esc(r)}</b> · ${esc(b.mulai)}–${esc(b.selesai)}<span class="break-tag ${b.live?"live":""}">${b.live?"BERLANGSUNG":"TERJADWAL"}</span></div><button class="btn btn-soft" onclick="clearBreak('${esc(r)}')">Akhiri</button></div>`).join("");
+ el.innerHTML=rows.map(({r,b})=>`<div class="break-item"><div><b>${esc(r)}</b> · ${esc(b.mulai)}–${esc(b.selesai)}<span class="break-tag ${b.live?"live":""}">${b.live?"BERLANGSUNG":b.waiting?"SETELAH BU SELESAI":"TERJADWAL"}</span></div><button class="btn btn-soft" onclick="clearBreak('${esc(r)}')">Akhiri</button></div>`).join("");
 }
 /* ===== Stopwatch & jam server ===== */
 let serverOffset=0,breaks={}; // selisih jam server - jam perangkat (ms)
@@ -262,7 +267,8 @@ function openBreak(room,doneId){
  if(!hasServer())return;
  breakCtx={room,doneId:doneId||""};
  $("breakModalTitle").textContent="☕ Istirahat "+room;
- $("breakModalDesc").textContent=(doneId?"BU yang sedang diproses akan ditandai Selesai, lalu ":"")+"istirahat dimulai sekarang. Layar menampilkan hitung mundur sampai pelayanan dimulai lagi.";
+ const busy=!doneId&&items.some(x=>x.room===room&&x.status==="Proses");
+ $("breakModalDesc").textContent=busy?"Masih ada BU yang sedang diproses. Layar istirahat akan muncul setelah BU tersebut ditandai Selesai.":(doneId?"BU yang sedang diproses akan ditandai Selesai, lalu ":"")+"istirahat dimulai sekarang. Layar menampilkan hitung mundur sampai pelayanan dimulai lagi.";
  $("breakEnd").value=hhmm(serverNow()+30*60000);
  $("breakModal").classList.add("show");setTimeout(()=>$("breakEnd").focus(),50);
 }
